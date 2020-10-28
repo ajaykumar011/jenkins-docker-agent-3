@@ -46,9 +46,23 @@ networks:
 # docker-compose up --build --force-recreate -d
 # curl  "$(curl ifconfig.me)"
 
+# ONly building for Dockerhub (point to the dockerfile ./nginx-phpfpm/.)
+# sudo docker build -t ajaykumar011/ubuntu20-04-all-in-one:latest ./nginx-phpfpm/.
+# docker login 
+
+# docker login --username ajaykumar011 --password @f3d3ra1
+# docker push ajaykumar011/ubuntu20-04-all-in-one:latest
+
+# Building for ECR
+# sudo docker build -t 143787628822.dkr.ecr.ap-south-1.amazonaws.com/ubuntu20-04-all-in-one:1.0.1 ./nginx-phpfpm/.
+
+
 # docker inspect webserver
-# docker-compose logs
-# docker-compose down -v --rmi=all
+# docker-compose logs && docker-compose events --json
+# docker-compose ps  & # docker-compose top
+# docker-compose port
+# docker-compose exec --user ROOT --env KEY=VAL --workdir DIR --detach
+# docker-compose down -v --rmi=all --volumes --remove-orphans
 # docker system prune -f
 # docker stop $(docker ps -aq)
 # docker rm $(docker ps -aq)
