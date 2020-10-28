@@ -27,6 +27,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "2222:22"
     volumes:
       - ./app:/var/www/html
       - ./nginx-phpfpm/nginx-conf:/etc/nginx/conf.d
@@ -44,6 +45,9 @@ networks:
 
 # docker-compose up --build --force-recreate -d
 # curl  "$(curl ifconfig.me)"
+
+# docker inspect webserver
+# docker-compose logs
 # docker-compose down -v --rmi=all
 # docker system prune -f
 # docker stop $(docker ps -aq)

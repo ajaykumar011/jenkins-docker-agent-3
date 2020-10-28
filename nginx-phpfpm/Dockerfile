@@ -18,12 +18,33 @@ RUN apt update
 #configure timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-# Install nginx, php-fpm and supervisord from ubuntu repository
-RUN apt install -y nginx php-fpm supervisor mysql-client php-mysql php-xml php-mbstring php-cli php-curl wget gnupg2 \
+#PYTHON 
+
+RUN apt-get install -y python3-pip python3-dev && \
+  cd /usr/local/bin && \
+  ln -s /usr/bin/python3 python && \
+  pip3 install --upgrade pip
+
+COPY requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt
+# RUN useradd --create-home appuser
+# WORKDIR /home/appuser
+# USER appuser
+
+# Install OpenSSH, Nginx, php-fpm and supervisord from ubuntu repository
+RUN apt install -y nginx php-fpm openssh-server openjdk-11-jre-headless supervisor mysql-client php-mysql php-xml php-mbstring php-cli php-curl wget gnupg2 \
     phploc phpdox pdepend phpmd php-codesniffer && \
     rm -rf /var/lib/apt/lists/* && \
     apt clean
-    
+
+#SSH Password setup for root
+RUN echo 'root:redhat' | chpasswd
+RUN sed -i 's/#*PermitRootLogin prohibit-password/PermitRootLogin yes/g' /etc/ssh/sshd_config
+# SSH login fix. Otherwise user is kicked off after login
+RUN sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd
+ENV NOTVISIBLE="in users profile"
+RUN echo "export VISIBLE=now" >> /etc/profile
+
 # Define the ENV variable
 ENV nginx_vhost /etc/nginx/sites-available/default
 ENV php_conf /etc/php/7.4/fpm/php.ini
@@ -41,6 +62,8 @@ COPY supervisord.conf ${supervisor_conf}
 RUN mkdir -p /run/php && \
     chown -R www-data:www-data /var/www/html && \
     chown -R www-data:www-data /run/php
+#for SSH
+RUN mkdir -p /var/run/sshd
 
 #PHP Common settings
 RUN sed -i 's#display_errors = Off#display_errors = On#' /etc/php/7.4/fpm/php.ini && \
@@ -63,7 +86,7 @@ RUN wget -O phive.phar https://phar.io/releases/phive.phar && \
 RUN yes | phive install --force-accept-unsigned --global phpunit
 
 # Volume configuration
-#VOLUME ["/etc/nginx/sites-enabled", "/etc/nginx/certs", "/etc/nginx/conf.d", "/var/log/nginx", "/var/www/html"]
+VOLUME ["/etc/nginx/sites-enabled", "/etc/nginx/certs", "/etc/nginx/conf.d", "/var/log/nginx", "/var/www/html"]
 
 # Copy start.sh script and define default command for the container
 COPY start.sh /start.sh
@@ -71,4 +94,4 @@ RUN chmod +x start.sh
 CMD ["./start.sh"]
 
 # Expose Port for the Application  #if you are using this in docker-compose then no need to define here.
-EXPOSE 80 443 
+EXPOSE 80 443 22
